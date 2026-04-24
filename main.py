@@ -3,6 +3,7 @@ import json
 import asyncio
 from telethon import TelegramClient
 import config
+import build_site
 
 async def main():
     print("=== Инициализация ===")
@@ -60,6 +61,9 @@ async def main():
                     "media_path": None,
                     "poll": None
                 })
+                
+                # Принудительно пишем/обновляем grouped_id для всех сообщений
+                msg_data["grouped_id"] = getattr(message, 'grouped_id', None)
                 
                 needs_download = False
                 custom_path = None
@@ -150,6 +154,13 @@ async def main():
     os.replace(TEMP_FILE, JSON_FILE)
     print(f"\n=== Готово! ===")
     print(f"Актуальная база сохранена в: {JSON_FILE}")
+
+    # 8. Генерация локального сайта
+    print("\n=== Запуск генератора локального сайта ===")
+    try:
+        build_site.main()
+    except Exception as e:
+        print(f"Ошибка при генерации сайта: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
