@@ -1,2 +1,79 @@
-# channelDownloader
-history downloader from Telegram channels
+# Telegram Channel Downloader
+
+Python-скрипт для резервного копирования сообщений и медиафайлов из Telegram-каналов. Работает на базе библиотеки [Telethon](https://github.com/LonamiWebs/Telethon).
+
+## Возможности
+
+- **Инкрементальная синхронизация** — можно прерывать в любой момент, при повторном запуске продолжит с места остановки
+- **Экспорт в JSONL** — тексты постов, ссылки на медиафайлы, данные опросов
+- **Автовосстановление** — переполучает истёкшие ссылки на файлы (`File reference expired`) без остановки
+- **Самоочистка** — находит и докачивает битые файлы размером 0 байт
+- **Защита от бана** — встроенная задержка между запросами, обработка `FloodWait`
+
+## Установка
+
+```bash
+git clone https://github.com/yourname/channeldownloader.git
+cd channeldownloader
+
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+## Настройка
+
+1. Получите `API_ID` и `API_HASH` на [my.telegram.org](https://my.telegram.org) → *API development tools*
+
+2. Скопируйте пример конфига и заполните свои данные:
+
+```bash
+cp config.py.example config.py
+```
+
+```python
+# config.py
+API_ID = 1234567
+API_HASH = 'ваш_хэш'
+
+CHANNEL_TARGET = -1001234567890  # ID канала, всегда начинается с -100
+
+SAVE_DIR = 'channel_dump'
+MEDIA_DIR = 'channel_dump/media'
+
+DELAY = 3  # Задержка между запросами (секунды). Не убирать!
+```
+
+### Как узнать ID канала
+
+Запустите утилиту `get_chats.py` — она выведет список всех ваших каналов и групп с их ID:
+
+```bash
+python get_chats.py
+```
+
+При первом запуске потребуется ввести номер телефона и код из Telegram. Найдите нужный канал в списке и скопируйте его ID в `config.py`.
+
+## Использование
+
+```bash
+python main.py
+```
+
+Скрипт создаст папку `channel_dump/` и начнёт выгрузку. Время работы зависит от размера канала и значения `DELAY`.
+
+Результат:
+- `channel_dump/messages.jsonl` — все сообщения
+- `channel_dump/media/` — медиафайлы
+
+## Предупреждения
+
+**Не убирайте `DELAY`.** Telegram API не поддерживает параллельное скачивание файлов. Убрав паузу, вы рискуете получить временную или постоянную блокировку аккаунта.
+
+**Используйте резервный аккаунт.** Для выгрузки больших каналов рекомендуется использовать отдельный аккаунт — на случай непредвиденных срабатываний защиты Telegram.
+
+**Риск нарушения ToS.** Использование сторонних клиентов, в том числе Telethon, формально нарушает пользовательское соглашение Telegram. Используйте на свой страх и риск.
